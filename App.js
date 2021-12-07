@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import type {Node} from 'react';
+//import type {Node} from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -26,7 +26,9 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
-const Section = ({children, title}): Node => {
+import * as Mqtt from 'react-native-native-mqtt';
+
+const Section = ({children, title}) => {
   const isDarkMode = useColorScheme() === 'dark';
   return (
     <View style={styles.sectionContainer}>
@@ -52,12 +54,38 @@ const Section = ({children, title}): Node => {
   );
 };
 
-const App: () => Node = () => {
+
+const App = () => {
   const isDarkMode = useColorScheme() === 'dark';
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
+
+  //const client = new Mqtt.Client('tcp://test.mosquitto.org:1883')
+  const client = new Mqtt.Client('ws://test.mosquitto.org:8080')
+
+  client.on(Mqtt.Event.Message,(topic,message) => {
+    console.log(`${topic}:${message.toString()}`);
+  })
+
+  client.on(Mqtt.Event.Connect,()=>{
+    console.log('connect')
+    client.subscribe(["topic_test"],[0])
+  })
+
+  client.on(Mqtt.Event.Error, (error) => {
+    console.log('MQTT Error:', error);
+  });
+
+  client.connect({
+    clientId: 'react-native-client-1234',
+    username: "rw",
+  },(err) => {
+    console.log(`connected:${client.connected}`);
+    console.log(`error:${err}`)
+    //client.subscribe(["test_topic"],[0])
+  })
 
   return (
     <SafeAreaView style={backgroundStyle}>
