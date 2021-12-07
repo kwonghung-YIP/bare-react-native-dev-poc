@@ -62,16 +62,22 @@ const App = () => {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
+  const pako = require('pako')
+
   //const client = new Mqtt.Client('tcp://test.mosquitto.org:1883')
-  const client = new Mqtt.Client('ws://test.mosquitto.org:8080')
+  //const client = new Mqtt.Client('ws://test.mosquitto.org:8080')
+  const client = new Mqtt.Client("wss://mrnzmkh0ufgnb.messaging.solace.cloud:8443")
 
   client.on(Mqtt.Event.Message,(topic,message) => {
-    console.log(`${topic}:${message.toString()}`);
+    //console.log(`${topic}:${message.toString()}`);
+    const compressed = Uint8Array.from(message.values());
+    const raw = pako.inflate(compressed,{to:'string'});
+    console.log(`${topic}:${raw}`)
   })
 
   client.on(Mqtt.Event.Connect,()=>{
     console.log('connect')
-    client.subscribe(["topic_test"],[0])
+    client.subscribe(["public/push/odds/dbl-zip"],[0])
   })
 
   client.on(Mqtt.Event.Error, (error) => {
@@ -80,7 +86,9 @@ const App = () => {
 
   client.connect({
     clientId: 'react-native-client-1234',
-    username: "rw",
+    //username: "rw",
+    username: "solace-cloud-client",
+    password: "e6r6a8ufj56v9dimfp6tgdectt",    
   },(err) => {
     console.log(`connected:${client.connected}`);
     console.log(`error:${err}`)
